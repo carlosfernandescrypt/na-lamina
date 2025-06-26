@@ -1,0 +1,7 @@
+src/
+target/
+*.md
+.git/
+.gitignore
+pom.xml
+*.sh 
