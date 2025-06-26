@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Configuração para demonstração - dados mockados
-const DEMO_MODE = true;
+const DEMO_MODE = false;
 
 // Dados mockados para demonstração
 const MOCK_DATA = {
@@ -75,16 +75,16 @@ export const barbeiroService = {
       barbeiro: MOCK_DATA.barbeiros.find(b => b.login === login),
       token: 'demo-token-' + Date.now()
     }) : 
-    api.post('/barbeiros/auth', { login, senha }),
+    api.post('/barbeiros/login', { login, senha }),
   verAgendaSemanal: (id, inicioSemana) => DEMO_MODE ? 
     mockApiCall([]) : 
-    api.get(`/barbeiros/${id}/agenda-semanal?inicio=${inicioSemana}`),
+    api.get(`/barbeiros/${id}/agenda-semanal?data=${inicioSemana}`),
   verAgendamentosPendentes: (id) => DEMO_MODE ? 
     mockApiCall([]) : 
-    api.get(`/barbeiros/${id}/agendamentos-pendentes`),
+    api.get(`/barbeiros/${id}/pendentes`),
   responderAgendamento: (barbeiroId, agendamentoId, aceitar, motivo) => DEMO_MODE ?
     mockApiCall({ success: true }) :
-    api.put(`/barbeiros/${barbeiroId}/agendamentos/${agendamentoId}/resposta`, {
+    api.put(`/barbeiros/${barbeiroId}/agendamentos/${agendamentoId}/responder`, {
       aceitar,
       motivo
     }),
@@ -94,7 +94,7 @@ export const barbeiroService = {
 export const clienteService = {
   listar: () => DEMO_MODE ? mockApiCall([]) : api.get('/clientes'),
   buscarPorId: (id) => DEMO_MODE ? mockApiCall(null) : api.get(`/clientes/${id}`),
-  buscarPorEmail: (email) => DEMO_MODE ? mockApiCall(null) : api.get(`/clientes/email/${email}`),
+  buscarPorEmail: (email) => DEMO_MODE ? mockApiCall(null) : api.get(`/clientes/${email}`),
   criar: (cliente) => DEMO_MODE ? mockApiCall({...cliente, id: Date.now()}) : api.post('/clientes', cliente),
   atualizar: (id, cliente) => DEMO_MODE ? mockApiCall(cliente) : api.put(`/clientes/${id}`, cliente),
   deletar: (id) => DEMO_MODE ? mockApiCall({ success: true }) : api.delete(`/clientes/${id}`),
@@ -115,17 +115,18 @@ export const agendamentoService = {
   cancelar: (id, motivo) => DEMO_MODE ? mockApiCall({ success: true }) : api.put(`/agendamentos/${id}/cancelar`, { motivo }),
   calcularValor: (servicoIds) => DEMO_MODE ? 
     mockApiCall({ 
-      valor: servicoIds.reduce((total, id) => {
+      valorTotal: servicoIds.reduce((total, id) => {
         const servico = MOCK_DATA.servicos.find(s => s.id === id);
         return total + (servico ? servico.preco : 0);
       }, 0)
     }) : 
     api.post('/agendamentos/calcular-valor', { servicoIds }),
   buscarPorCliente: (clienteId) => DEMO_MODE ? mockApiCall([]) : api.get(`/agendamentos/cliente/${clienteId}`),
-  buscarPorEmail: (email) => DEMO_MODE ? mockApiCall([]) : api.get(`/agendamentos/cliente/email/${email}`),
+  buscarPorEmail: (email) => DEMO_MODE ? mockApiCall([]) : api.get(`/agendamentos/cliente/${email}`),
   buscarPorBarbeiro: (barbeiroId) => DEMO_MODE ? mockApiCall([]) : api.get(`/agendamentos/barbeiro/${barbeiroId}`),
   listarPendentes: () => DEMO_MODE ? mockApiCall([]) : api.get('/agendamentos/pendentes'),
   listarConfirmados: () => DEMO_MODE ? mockApiCall([]) : api.get('/agendamentos/confirmados'),
+  listarTodos: () => DEMO_MODE ? mockApiCall([]) : api.get('/agendamentos'),
 };
 
 // Serviços de Mensagem

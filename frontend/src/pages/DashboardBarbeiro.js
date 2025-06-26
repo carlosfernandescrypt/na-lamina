@@ -45,8 +45,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { 
   barbeiroService, 
-  agendamentoService, 
-  mensagemService 
+  agendamentoService 
 } from '../services/api';
 
 const DashboardBarbeiro = () => {
@@ -66,24 +65,24 @@ const DashboardBarbeiro = () => {
     try {
       const barbeiroData = JSON.parse(localStorage.getItem('barbeiro'));
       
-      // Carregar agendamentos pendentes
-      const pendentesResponse = await agendamentoService.listarPendentes();
-      const meusPendentes = pendentesResponse.data.filter(
-        ag => ag.barbeiro?.id === barbeiroData.id
+      // Carregar todos os agendamentos e filtrar os do barbeiro
+      const agendamentosResponse = await agendamentoService.listarTodos();
+      const todosAgendamentos = agendamentosResponse.data || [];
+      
+      // Filtrar agendamentos pendentes do barbeiro
+      const meusPendentes = todosAgendamentos.filter(
+        ag => ag.barbeiro?.id === barbeiroData.id && ag.status === 'PENDENTE'
       );
       setAgendamentosPendentes(meusPendentes);
 
-      // Carregar agendamentos confirmados de hoje
-      const confirmadosResponse = await agendamentoService.listarConfirmados();
-      const meusConfirmados = confirmadosResponse.data.filter(
-        ag => ag.barbeiro?.id === barbeiroData.id &&
-             isToday(new Date(ag.dataHorario))
+      // Filtrar agendamentos confirmados do barbeiro (todos, não apenas hoje)
+      const meusConfirmados = todosAgendamentos.filter(
+        ag => ag.barbeiro?.id === barbeiroData.id && ag.status === 'CONFIRMADO'
       );
       setAgendamentosConfirmados(meusConfirmados);
 
-      // Carregar mensagens não lidas
-      const mensagensResponse = await mensagemService.contarNaoLidas(barbeiroData.id);
-      setMensagensNaoLidas(mensagensResponse.data);
+      // Definir mensagens como 0 por enquanto (funcionalidade futura)
+      setMensagensNaoLidas(0);
 
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
@@ -98,7 +97,7 @@ const DashboardBarbeiro = () => {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
     
     if (!barbeiroData || !isLoggedIn) {
-      navigate('/login-barbeiro');
+      navigate('/barbeiro/login');
       return;
     }
     
@@ -182,6 +181,7 @@ const DashboardBarbeiro = () => {
       }
 
       await barbeiroService.responderAgendamento(
+        barbeiro.id,
         selectedAgendamento.id, 
         isConfirmar, 
         responseMotivo || null
@@ -207,12 +207,12 @@ const DashboardBarbeiro = () => {
 
   const calcularEstatisticas = () => {
     const totalPendentes = agendamentosPendentes.length;
-    const totalHoje = agendamentosConfirmados.length;
-    const valorHoje = agendamentosConfirmados.reduce(
+    const totalConfirmados = agendamentosConfirmados.length;
+    const valorTotal = agendamentosConfirmados.reduce(
       (total, ag) => total + (ag.valorTotal || 0), 0
     );
 
-    return { totalPendentes, totalHoje, valorHoje };
+    return { totalPendentes, totalConfirmados, valorTotal };
   };
 
   if (loading) {
@@ -299,13 +299,13 @@ const DashboardBarbeiro = () => {
                 <Box display="flex" alignItems="center" justifyContent="space-between">
                   <Box>
                     <Typography color="textSecondary" gutterBottom>
-                      Agendamentos Hoje
+                      Agendamentos Confirmados
                     </Typography>
                     <Typography variant="h4" component="div">
-                      {stats.totalHoje}
+                      {stats.totalConfirmados}
                     </Typography>
                   </Box>
-                  <Today color="primary" sx={{ fontSize: 40 }} />
+                  <CheckCircle color="success" sx={{ fontSize: 40 }} />
                 </Box>
               </CardContent>
             </Card>
@@ -317,10 +317,10 @@ const DashboardBarbeiro = () => {
                 <Box display="flex" alignItems="center" justifyContent="space-between">
                   <Box>
                     <Typography color="textSecondary" gutterBottom>
-                      Faturamento Hoje
+                      Valor Total
                     </Typography>
                     <Typography variant="h4" component="div">
-                      R$ {stats.valorHoje.toFixed(2)}
+                      R$ {stats.valorTotal.toFixed(2)}
                     </Typography>
                   </Box>
                   <TrendingUp color="success" sx={{ fontSize: 40 }} />
@@ -334,7 +334,7 @@ const DashboardBarbeiro = () => {
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
           <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)}>
             <Tab label={`Pendentes (${stats.totalPendentes})`} />
-            <Tab label={`Hoje (${stats.totalHoje})`} />
+            <Tab label={`Confirmados (${stats.totalConfirmados})`} />
           </Tabs>
         </Box>
 
@@ -423,24 +423,24 @@ const DashboardBarbeiro = () => {
           </Card>
         )}
 
-        {/* Agendamentos de Hoje */}
+        {/* Agendamentos Confirmados */}
         {tabValue === 1 && (
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Agendamentos Confirmados para Hoje
+                Agendamentos Confirmados
               </Typography>
               
               {agendamentosConfirmados.length === 0 ? (
                 <Alert severity="info">
-                  Nenhum agendamento confirmado para hoje.
+                  Nenhum agendamento confirmado no momento.
                 </Alert>
               ) : (
                 <TableContainer>
                   <Table>
                     <TableHead>
                       <TableRow>
-                        <TableCell>Horário</TableCell>
+                        <TableCell>Data/Hora</TableCell>
                         <TableCell>Cliente</TableCell>
                         <TableCell>Serviços</TableCell>
                         <TableCell>Valor</TableCell>
@@ -454,16 +454,16 @@ const DashboardBarbeiro = () => {
                         <TableRow key={agendamento.id}>
                           <TableCell>
                             <Typography variant="body2" fontWeight="medium">
-                              {formatTime(agendamento.dataHorario)}
+                              {formatDateTime(agendamento.dataHorario)}
                             </Typography>
                           </TableCell>
                           <TableCell>
                             <Box>
                               <Typography variant="body2" fontWeight="medium">
-                                {agendamento.cliente?.nome}
+                                {agendamento.cliente?.nomeCompleto}
                               </Typography>
                               <Typography variant="caption" color="text.secondary">
-                                {agendamento.cliente?.telefone}
+                                {agendamento.cliente?.email}
                               </Typography>
                             </Box>
                           </TableCell>

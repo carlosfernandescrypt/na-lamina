@@ -176,6 +176,10 @@ public class AgendamentoService {
         return agendamentoRepository.findByStatus(StatusAgendamento.CONFIRMADO);
     }
     
+    public List<Agendamento> listarTodos() {
+        return agendamentoRepository.findAll();
+    }
+    
     public Agendamento atualizarAgendamento(Long id, LocalDateTime novaDataHorario, List<Long> novosServicoIds) {
         Optional<Agendamento> agendamentoExistente = agendamentoRepository.findById(id);
         

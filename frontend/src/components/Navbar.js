@@ -64,7 +64,7 @@ const Navbar = () => {
           component="div"
           sx={{ flexGrow: 1, fontWeight: 'bold' }}
         >
-          BarberShop System
+          Na-Lâmina System
         </Typography>
 
         {isMobile ? (

@@ -65,7 +65,7 @@ const Home = () => {
       >
         <Container maxWidth="md">
           <Typography variant="h2" component="h1" gutterBottom>
-            Bem-vindo à BarberShop
+            Bem-vindo à Na-Lâmina
           </Typography>
           <Typography variant="h5" sx={{ mb: 4, opacity: 0.9 }}>
             O melhor em cortes masculinos e cuidados com a barba

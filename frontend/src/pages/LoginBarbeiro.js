@@ -64,13 +64,14 @@ const LoginBarbeiro = () => {
     try {
       const response = await barbeiroService.autenticar(formData.login, formData.senha);
       
-      if (response.data && response.data.id) {
+      // Verificar se o login foi bem-sucedido e se há dados do barbeiro
+      if (response.data && response.data.success && response.data.barbeiro) {
         // Salvar dados do barbeiro no localStorage
-        localStorage.setItem('barbeiro', JSON.stringify(response.data));
+        localStorage.setItem('barbeiro', JSON.stringify(response.data.barbeiro));
         localStorage.setItem('isLoggedIn', 'true');
         
-        toast.success(`Bem-vindo, ${response.data.nome}!`);
-        navigate('/dashboard');
+        toast.success(`Bem-vindo, ${response.data.barbeiro.nome}!`);
+        navigate('/barbeiro/dashboard');
       } else {
         setError('Resposta inválida do servidor');
       }

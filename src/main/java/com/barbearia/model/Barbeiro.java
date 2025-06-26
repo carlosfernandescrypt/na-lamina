@@ -34,9 +34,11 @@ public class Barbeiro {
     @Column(name = "data_criacao")
     private LocalDateTime dataCriacao;
     
+    @JsonIgnore
     @OneToMany(mappedBy = "barbeiro", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Agendamento> agendamentos;
     
+    @JsonIgnore
     @OneToMany(mappedBy = "destinatario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Mensagem> mensagens;
     

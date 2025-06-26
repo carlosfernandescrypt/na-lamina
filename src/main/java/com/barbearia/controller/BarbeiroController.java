@@ -31,7 +31,8 @@ public class BarbeiroController {
                 if (barbeiro.isPresent()) {
                     return ResponseEntity.ok(Map.of(
                         "success", true,
-                        "barbeiro", barbeiro.get()
+                        "barbeiro", barbeiro.get(),
+                        "message", "Login realizado com sucesso"
                     ));
                 }
             }
@@ -43,8 +44,34 @@ public class BarbeiroController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of(
                 "success", false,
-                "message", e.getMessage()
+                "message", "Erro no login: " + e.getMessage()
             ));
+        }
+    }
+    
+    // Endpoint de teste para verificar senha
+    @PostMapping("/test-password")
+    public ResponseEntity<?> testPassword(@RequestBody Map<String, String> request) {
+        try {
+            String login = request.get("login");
+            String senha = request.get("senha");
+            
+            Optional<Barbeiro> barbeiro = barbeiroService.buscarPorLogin(login);
+            if (barbeiro.isPresent()) {
+                boolean senhaCorreta = barbeiro.get().fazerLogin(login, senha);
+                return ResponseEntity.ok(Map.of(
+                    "login", login,
+                    "senhaCorreta", senhaCorreta,
+                    "barbeiroEncontrado", true
+                ));
+            } else {
+                return ResponseEntity.ok(Map.of(
+                    "login", login,
+                    "barbeiroEncontrado", false
+                ));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
         }
     }
     
@@ -100,6 +127,22 @@ public class BarbeiroController {
             }
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    
+    // Endpoint temporário para gerar hash BCrypt
+    @PostMapping("/generate-hash/{password}")
+    public ResponseEntity<?> generateHash(@PathVariable String password) {
+        try {
+            org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder encoder = 
+                new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
+            String hash = encoder.encode(password);
+            return ResponseEntity.ok(Map.of(
+                "password", password,
+                "hash", hash
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
         }
     }
 }

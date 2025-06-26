@@ -20,13 +20,66 @@ public class AgendamentoController {
     @Autowired
     private AgendamentoService agendamentoService;
     
+    @GetMapping
+    public ResponseEntity<List<Agendamento>> listarTodos() {
+        try {
+            List<Agendamento> agendamentos = agendamentoService.listarTodos();
+            return ResponseEntity.ok(agendamentos);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    @GetMapping("/cliente/{email}")
+    public ResponseEntity<?> buscarPorEmailCliente(@PathVariable String email) {
+        try {
+            List<Agendamento> agendamentos = agendamentoService.buscarPorEmailCliente(email);
+            return ResponseEntity.ok(agendamentos);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Erro ao buscar agendamentos: " + e.getMessage());
+        }
+    }
+    
+    @GetMapping("/pendentes")
+    public ResponseEntity<List<Agendamento>> listarPendentes() {
+        try {
+            List<Agendamento> agendamentos = agendamentoService.buscarAgendamentosPendentes();
+            return ResponseEntity.ok(agendamentos);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    @GetMapping("/confirmados")
+    public ResponseEntity<List<Agendamento>> listarConfirmados() {
+        try {
+            List<Agendamento> agendamentos = agendamentoService.buscarAgendamentosConfirmados();
+            return ResponseEntity.ok(agendamentos);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
     @PostMapping
     public ResponseEntity<?> criarAgendamento(@RequestBody Map<String, Object> request) {
         try {
             String nomeCliente = (String) request.get("nomeCliente");
             String emailCliente = (String) request.get("emailCliente");
             Long barbeiroId = Long.valueOf(request.get("barbeiroId").toString());
-            List<Long> servicoIds = (List<Long>) request.get("servicoIds");
+            
+            List<?> rawServicoIds = (List<?>) request.get("servicoIds");
+            List<Long> servicoIds = rawServicoIds.stream()
+                .map(id -> {
+                    if (id instanceof Integer) {
+                        return ((Integer) id).longValue();
+                    } else if (id instanceof Long) {
+                        return (Long) id;
+                    } else {
+                        return Long.valueOf(id.toString());
+                    }
+                })
+                .collect(java.util.stream.Collectors.toList());
+            
             LocalDateTime dataHorario = LocalDateTime.parse((String) request.get("dataHorario"));
             String observacoes = (String) request.get("observacoes");
             
@@ -61,9 +114,21 @@ public class AgendamentoController {
     }
     
     @PostMapping("/calcular-valor")
-    public ResponseEntity<?> calcularValorTotal(@RequestBody Map<String, List<Long>> request) {
+    public ResponseEntity<?> calcularValorTotal(@RequestBody Map<String, Object> request) {
         try {
-            List<Long> servicoIds = request.get("servicoIds");
+            List<?> rawServicoIds = (List<?>) request.get("servicoIds");
+            List<Long> servicoIds = rawServicoIds.stream()
+                .map(id -> {
+                    if (id instanceof Integer) {
+                        return ((Integer) id).longValue();
+                    } else if (id instanceof Long) {
+                        return (Long) id;
+                    } else {
+                        return Long.valueOf(id.toString());
+                    }
+                })
+                .collect(java.util.stream.Collectors.toList());
+            
             double valorTotal = agendamentoService.calcularValorTotal(servicoIds);
             return ResponseEntity.ok(Map.of("valorTotal", valorTotal));
         } catch (Exception e) {

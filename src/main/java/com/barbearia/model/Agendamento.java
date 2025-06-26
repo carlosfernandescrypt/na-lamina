@@ -1,26 +1,31 @@
 package com.barbearia.model;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
 @Table(name = "agendamentos")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Agendamento {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "cliente_id", nullable = false)
+    @JsonIgnoreProperties({"agendamentos"})
     private Cliente cliente;
     
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "barbeiro_id", nullable = false)
+    @JsonIgnoreProperties({"agendamentos", "mensagens", "senha"})
     private Barbeiro barbeiro;
     
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "agendamento_servicos",
         joinColumns = @JoinColumn(name = "agendamento_id"),
@@ -47,6 +52,7 @@ public class Agendamento {
     @Column(name = "observacoes")
     private String observacoes;
     
+    @JsonIgnore
     @OneToMany(mappedBy = "agendamento", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Mensagem> mensagens;
     
