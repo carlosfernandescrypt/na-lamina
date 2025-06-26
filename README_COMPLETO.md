@@ -149,21 +149,33 @@ frontend/src/
 - **Maven** instalado
 - **npm** ou **yarn** instalado
 
-### 1. Executar o Backend
+### ⚡ **EXECUÇÃO RÁPIDA**
+
+### 🎯 **Modo Automático (Recomendado)**
+
+**1. Iniciar tudo de uma vez:**
 ```bash
-# Na raiz do projeto
+./iniciar-projeto.sh
+```
+
+**2. Parar todos os serviços:**
+```bash
+./parar-projeto.sh
+```
+
+### 📋 **Modo Manual**
+
+**1. Backend:**
+```bash
 mvn spring-boot:run
 ```
-O backend estará disponível em: `http://localhost:8080`
 
-### 2. Executar o Frontend
+**2. Frontend:**
 ```bash
-# No diretório frontend
 cd frontend
-npm install
+npm install  # apenas na primeira vez
 npm start
 ```
-O frontend estará disponível em: `http://localhost:3000`
 
 ## 🔗 Endpoints da API
 
