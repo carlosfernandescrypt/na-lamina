@@ -20,7 +20,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -34,16 +33,12 @@ import {
 } from '@mui/material';
 import {
   Dashboard,
-  Schedule,
-  Person,
   ExitToApp,
   CheckCircle,
   Cancel,
   HourglassEmpty,
-  Notifications,
   Message,
   Today,
-  CalendarMonth,
   TrendingUp,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
