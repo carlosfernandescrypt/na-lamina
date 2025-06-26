@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container,
   Typography,
@@ -67,20 +67,7 @@ const DashboardBarbeiro = () => {
   const [tabValue, setTabValue] = useState(0);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const barbeiroData = localStorage.getItem('barbeiro');
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    
-    if (!barbeiroData || !isLoggedIn) {
-      navigate('/login-barbeiro');
-      return;
-    }
-    
-    setBarbeiro(JSON.parse(barbeiroData));
-    carregarDados();
-  }, [navigate]);
-
-  const carregarDados = async () => {
+  const carregarDados = useCallback(async () => {
     try {
       const barbeiroData = JSON.parse(localStorage.getItem('barbeiro'));
       
@@ -109,7 +96,20 @@ const DashboardBarbeiro = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const barbeiroData = localStorage.getItem('barbeiro');
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    
+    if (!barbeiroData || !isLoggedIn) {
+      navigate('/login-barbeiro');
+      return;
+    }
+    
+    setBarbeiro(JSON.parse(barbeiroData));
+    carregarDados();
+  }, [navigate, carregarDados]);
 
   const isToday = (date) => {
     const today = new Date();

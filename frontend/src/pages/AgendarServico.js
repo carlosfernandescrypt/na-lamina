@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container,
   Typography,
@@ -49,13 +49,22 @@ const AgendarServico = () => {
     carregarDados();
   }, []);
 
+  const calcularValorTotal = useCallback(async () => {
+    try {
+      const response = await agendamentoService.calcularValor(formData.servicoIds);
+      setValorTotal(response.data.valorTotal);
+    } catch (error) {
+      console.error('Erro ao calcular valor:', error);
+    }
+  }, [formData.servicoIds]);
+
   useEffect(() => {
     if (formData.servicoIds.length > 0) {
       calcularValorTotal();
     } else {
       setValorTotal(0);
     }
-  }, [formData.servicoIds]);
+  }, [formData.servicoIds, calcularValorTotal]);
 
   const carregarDados = async () => {
     try {
@@ -72,15 +81,6 @@ const AgendarServico = () => {
       toast.error('Erro ao carregar dados. Tente novamente.');
     } finally {
       setLoadingData(false);
-    }
-  };
-
-  const calcularValorTotal = async () => {
-    try {
-      const response = await agendamentoService.calcularValor(formData.servicoIds);
-      setValorTotal(response.data.valorTotal);
-    } catch (error) {
-      console.error('Erro ao calcular valor:', error);
     }
   };
 

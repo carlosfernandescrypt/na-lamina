@@ -14,7 +14,6 @@ import {
 import {
   Schedule,
   AttachMoney,
-  ContentCut,
   AccessTime,
   CalendarToday,
 } from '@mui/icons-material';
